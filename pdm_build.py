@@ -1,3 +1,4 @@
+import os
 import re
 import shutil
 import subprocess
@@ -14,6 +15,12 @@ def get_version() -> str:
         msg = "could not find version in __init__.py"
         raise RuntimeError(msg)
     return version.group(1)
+
+
+def is_windows():
+    if "GOOS" in os.environ:
+        return os.environ["GOOS"] == "windows"
+    return sys.platform == "win32"
 
 
 def download(output: str) -> None:
@@ -60,12 +67,14 @@ def download(output: str) -> None:
             msg = "eget build failed"
             raise RuntimeError(msg) from e
 
+    Path(output).chmod(0o777)
 
-def pdm_build_initialize(context):
+
+def pdm_build_initialize(context) -> None:
     if context.target == "sdist":
         return
     context.ensure_build_dir()
     output_path = Path(context.build_dir, "eget", "eget")
-    if sys.platform == "win32":
-        output_dir = output_path.with_suffix(".exe")
-    download(str(output_dir))
+    if is_windows():
+        output_path = output_path.with_suffix(".exe")
+    download(str(output_path))
