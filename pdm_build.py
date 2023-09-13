@@ -23,7 +23,14 @@ def download(output: str):
     version = get_version()
 
     repo = "github.com/zyedidia/eget"
-    args = [go, "install", f"{repo}@v{version}"]
+    args = [
+        go,
+        "install",
+        "-trimpath",
+        "-ldflags",
+        f"-s -v -X main.Version={version}",
+        f"{repo}@v{version}",
+    ]
 
     try:
         subprocess.run(args, check=True)
