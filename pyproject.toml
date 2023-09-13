@@ -1,0 +1,21 @@
+[project]
+name = "eget-py"
+description = "zyedidia/eget wrapper for python"
+readme = "README.md"
+requires-python = ">=3.7"
+
+dynamic = ["version"]
+
+[project.urls]
+repository = "https://github.com/Bing-su/eget-py"
+
+[project.scripts]
+eget = "eget.__main__:main"
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm.version]
+source = "file"
+path = "eget/__init__.py"
