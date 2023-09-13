@@ -1,7 +1,8 @@
 import re
-import os
 import shutil
 import subprocess
+import sys
+import tempfile
 from pathlib import Path
 
 
@@ -17,34 +18,54 @@ def get_version() -> str:
 
 def download(output: str) -> None:
     go = shutil.which("go")
+    git = shutil.which("git")
 
     if go is None:
         msg = "golang is required and 'go' should be in $PATH"
         raise RuntimeError(msg)
 
-    os.environ["GOBIN"] = output
+    if git is None:
+        msg = "git is required and 'git' should be in $PATH"
+        raise RuntimeError(msg)
+
     version = get_version()
 
     repo = "github.com/zyedidia/eget"
-    args = [
-        go,
-        "install",
-        "-trimpath",
-        "-ldflags",
-        f"-s -v -X main.Version={version}",
-        f"{repo}@v{version}",
-    ]
+    github = f"https://{repo}"
 
-    try:
-        subprocess.run(args, check=True)
-    except subprocess.CalledProcessError as e:
-        msg = "Go install failed"
-        raise RuntimeError(msg) from e
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        try:
+            subprocess.run(
+                [git, "clone", "-b", f"v{version}", "--depth", "1", github, tmp_dir],
+                check=True,
+            )
+        except subprocess.CalledProcessError as e:
+            msg = "git clone failed"
+            raise RuntimeError(msg) from e
+
+        args = [
+            go,
+            "build",
+            "-trimpath",
+            "-ldflags",
+            f"-s -v -X main.Version={version}",
+            "-o",
+            output,
+            ".",
+        ]
+
+        try:
+            subprocess.run(args, check=True, cwd=tmp_dir)
+        except subprocess.CalledProcessError as e:
+            msg = "eget build failed"
+            raise RuntimeError(msg) from e
 
 
 def pdm_build_initialize(context):
     if context.target == "sdist":
         return
     context.ensure_build_dir()
-    output_dir = Path(context.build_dir, "eget")
+    output_path = Path(context.build_dir, "eget", "eget")
+    if sys.platform == "win32":
+        output_dir = output_path.with_suffix(".exe")
     download(str(output_dir))
