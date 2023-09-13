@@ -5,14 +5,17 @@ import subprocess
 from pathlib import Path
 
 
-def get_version():
+def get_version() -> str:
     root = Path(__file__).parent
     init = root.joinpath("eget", "__init__.py").read_text("utf-8")
     version = re.search(r'__version__ = "(.*?)"', init)
-    return version.group(1) if version else "latest"
+    if not version:
+        msg = "could not find version in __init__.py"
+        raise RuntimeError(msg)
+    return version.group(1)
 
 
-def download(output: str):
+def download(output: str) -> None:
     go = shutil.which("go")
 
     if go is None:
@@ -35,7 +38,7 @@ def download(output: str):
     try:
         subprocess.run(args, check=True)
     except subprocess.CalledProcessError as e:
-        msg = f"Go install failed:\n{e}"
+        msg = "Go install failed"
         raise RuntimeError(msg) from e
 
 
