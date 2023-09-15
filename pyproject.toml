@@ -20,6 +20,9 @@ build-backend = "pdm.backend"
 source = "file"
 path = "eget/__init__.py"
 
+[tool.pdm.build]
+is-purelib = false
+
 [tool.ruff]
 select = [
     "A",

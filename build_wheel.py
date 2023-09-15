@@ -6,12 +6,15 @@ import sys
 def build(os_: str, arch: str, platform: str):
     os.environ["GOOS"] = os_
     os.environ["GOARCH"] = arch
+    os.environ["CGO_ENABLED"] = "0"
 
     args = [
         sys.executable,
         "-m",
         "build",
         "-w",
+        "--config-setting=--python-tag=py3",
+        "--config-setting=--py-limited-api=none",
         f"--config-setting=--plat-name={platform}",
     ]
 
@@ -21,6 +24,7 @@ def build(os_: str, arch: str, platform: str):
 def main():
     matrix = [
         ("windows", "amd64", "win_amd64"),
+        ("windows", "arm64", "win_arm64"),
         ("darwin", "amd64", "macosx_10_7_x86_64"),
         ("darwin", "arm64", "macosx_11_0_arm64"),
         ("linux", "amd64", "manylinux2014_x86_64"),
