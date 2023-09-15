@@ -10,7 +10,7 @@ from pathlib import Path
 def get_version() -> str:
     root = Path(__file__).parent
     init = root.joinpath("eget", "__init__.py").read_text("utf-8")
-    version = re.search(r'__version__ = "(.*?)"', init)
+    version = re.search(r'__version__ = "(\d+\.\d+\.\d+).*?"', init)
     if not version:
         msg = "could not find version in __init__.py"
         raise RuntimeError(msg)
