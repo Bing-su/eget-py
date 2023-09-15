@@ -17,9 +17,13 @@ jobs:
         with:
           go-version: "stable"
 
-      - run: pip install build[virtualenv]
+      - run: pip install build[virtualenv] wheel
       - run: python build_wheel.py
       - run: python -m build -s .
+
+      - run: |
+          pip install --no-index -f dist/ eget-py
+          eget --version
 
       - uses: actions/upload-artifact@v3
         with:
