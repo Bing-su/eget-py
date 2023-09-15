@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 
 def build(os_: str, arch: str, platform: str):
@@ -20,6 +21,25 @@ def build(os_: str, arch: str, platform: str):
 
     subprocess.run(args, check=True)
 
+    if "manylinux" not in platform:
+        return
+
+    arch = platform.split("_", maxsplit=1)[-1]
+
+    whl = next(Path("dist").glob(f"*{platform}*"))
+
+    args = [
+        sys.executable,
+        "-m",
+        "wheel",
+        "tags",
+        "--platform-tag",
+        f"manylinux_2_17_{arch}.manylinux2014_{arch}.musllinux_1_1_{arch}",
+        str(whl),
+    ]
+    subprocess.run(args, check=True)
+    whl.unlink()
+
 
 def main():
     matrix = [
@@ -28,9 +48,7 @@ def main():
         ("darwin", "amd64", "macosx_10_7_x86_64"),
         ("darwin", "arm64", "macosx_11_0_arm64"),
         ("linux", "amd64", "manylinux2014_x86_64"),
-        ("linux", "amd64", "musllinux_1_1_x86_64"),
         ("linux", "arm64", "manylinux2014_aarch64"),
-        ("linux", "arm64", "musllinux_1_1_aarch64"),
         ("linux", "s390x", "manylinux2014_s390x"),
         ("linux", "ppc64le", "manylinux2014_ppc64le"),
     ]
